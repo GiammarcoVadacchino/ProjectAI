@@ -163,8 +163,8 @@ def dfs(G,start):
     tested_path = 0
 
 
-    #A list where each element is: starting point, cost of the path, visited nodes
-    stack = [([start], 0, [start])]
+    #A list where each element is: set of starting point, cost of the path, set of visited nodes
+    stack = [([start], 0, {start})]
 
     while stack:
         #Return the last element of the list in order to get the last updated infos
@@ -188,7 +188,7 @@ def dfs(G,start):
                 stack.append((
                     path + [next],
                     cost + weight,
-                    visited + [next]
+                    visited | {start} # Union beetween two sets
                 ))
 
 
