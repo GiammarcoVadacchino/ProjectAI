@@ -188,7 +188,7 @@ def dfs(G,start):
                 stack.append((
                     path + [next],
                     cost + weight,
-                    visited | {start} # Union beetween two sets
+                    visited | {next} # Union beetween two sets
                 ))
 
 
