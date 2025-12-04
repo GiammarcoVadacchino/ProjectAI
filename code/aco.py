@@ -145,39 +145,74 @@ def ant_colony_optimization(G, n_ants=10, n_iters=30, alpha=1, beta=2, evaporati
                 u,v = path[i], path[i+1]
                 G[u][v]['pheromone'] += Q / cost
                 
-    return best_path, best_cost
+    return best_path, best_cost,n_iters * n_ants
 
 
 
+
+#The idea for the exhaustive search is that we have to do a dfs for each node on the graph, this allows us to generate all the possible valid paths.
+#I can do this because a solution is in the research space if it is a possible path, so all the possibles paths are in the research space and the reaserch space is close.
+#This make the comparison more faster and maybe allows to use bigger graph for comparison.
+#So i don't consider all the permutation of nodes for the reaserch space but only the all permutation of nodes that are valid path but without generating all possible permutations, instead i do a dfs for each node in the graph.
+#With this method for exhaustive search i still check all the research space.
+def dfs(G,start):
+
+    nodes = list(G.nodes())
+    best_cost = float('inf')
+    best_path = None
+    tested_path = 0
+
+
+    #A list where each element is: starting point, cost of the path, visited nodes
+    stack = [([start], 0, [start])]
+
+    while stack:
+        #Return the last element of the list in order to get the last updated infos
+        path, cost, visited = stack.pop()
+        #Get last element of the path, so the current node
+        current = path[-1]
+
+        #If all nodes are visited once
+        if len(path) == len(nodes):
+            tested_path += 1
+            if cost < best_cost:
+                best_cost = cost
+                best_path = path
+            continue
+    
+        #Checking for neighbors, so we build the path
+        for next in G.neighbors(current):
+            if next not in visited:
+                weight = G[current][next]["weight"]
+                #Updating infos
+                stack.append((
+                    path + [next],
+                    cost + weight,
+                    visited + [next]
+                ))
+
+
+    return best_path,best_cost,tested_path
+
+    
 #Exaustive research used for comparing the performance with ACO
-#TODO: change this function in a way that only the permutations that correponds to a path are taken in consideration.
-#NOTE: i can do this because a solution is in the research space if it is a possible path, so all the possibles paths are in the research space and the reaserch space is close.
-#.     This make the comparison more faster and maybe allows to use bigger graph for comparison.
 def exhaustive_search(G):
     nodes = list(G.nodes())
-    best_path = None
-    best_cost = float('inf')
-    permutations_of_nodes = itertools.permutations(nodes)
+    gloabal_best_path = None
+    global_best_cost = float('inf')
+    global_tested_path = 0
+    
+    #Run a dfs for each node, 
+    for node in nodes:
 
-    for perm in  permutations_of_nodes:
-        valid = True
-        #Check if the permutation selected is a valid path or not
-        for i in range(len(perm)-1):
-            if not G.has_edge(perm[i], perm[i+1]):
-                valid = False
-                break
+        local_best_path, local_best_cost,local_tested_path = dfs(G,node)
+        global_tested_path += local_tested_path
 
-        #Used for skip the calcuation of the fitness for invalid path
-        if not valid:
-            continue
-        
-        #Calculate fitness
-        cost = path_length(G, perm)
-        if cost < best_cost:
-            best_cost = cost
-            best_path = perm
+        if local_best_path is not None and local_best_cost < global_best_cost:
+            gloabal_best_path = local_best_path
+            global_best_cost = local_best_cost
 
-    return best_path, best_cost
+    return gloabal_best_path,global_best_cost, global_tested_path
 
 
 
@@ -245,13 +280,16 @@ def compare_tsp_algorithms(G, n_ants=10, n_iters=30):
 
     #Run aco
     start_aco = time.time()
-    best_path_aco, best_cost_aco = ant_colony_optimization(G, n_ants=n_ants, n_iters=n_iters)
+    best_path_aco, best_cost_aco,tested_paths_aco = ant_colony_optimization(G, n_ants=n_ants, n_iters=n_iters)
     time_aco = time.time() - start_aco
 
     #Run brute force
     start_brute = time.time()
-    best_path_brute, best_cost_brute = exhaustive_search(G)
+    best_path_brute, best_cost_brute, tested_paths_bf = exhaustive_search(G)
     time_brute = time.time() - start_brute
+
+    print(f"Number of tested path with ACO: {tested_paths_aco}")
+    print(f"Number of tested paths with Brute Force: {tested_paths_bf}")
 
     #Results
     result = {
@@ -263,8 +301,8 @@ def compare_tsp_algorithms(G, n_ants=10, n_iters=30):
 
 
 # %%
-n_nodes = 10
-n_edges = 50
+n_nodes = 15
+n_edges = 120
 G = create_random_graph(n_nodes, n_edges)
 
 #Run Comparison
