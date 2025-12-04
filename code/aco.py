@@ -13,7 +13,7 @@
 # ---
 
 # %%
-import itertools
+import csv
 import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
@@ -293,20 +293,40 @@ def compare_tsp_algorithms(G, n_ants=10, n_iters=30):
 
     #Results
     result = {
-        "ACO": {"path": best_path_aco, "cost": best_cost_aco, "time": time_aco},
-        "Brute Force": {"path": best_path_brute, "cost": best_cost_brute, "time": time_brute},
+        "ACO": {"path": best_path_aco, "cost": best_cost_aco, "time": time_aco,"tested_path": tested_paths_aco},
+        "Brute Force": {"path": best_path_brute, "cost": best_cost_brute, "time": time_brute, "tested_path": tested_paths_bf},
         "Speedup": time_brute/time_aco if time_aco>0 else None
     }
     return result
 
 
 # %%
-n_nodes = 15
-n_edges = 120
+n_nodes = 14
+n_edges = 70
 G = create_random_graph(n_nodes, n_edges)
 
 #Run Comparison
 results = compare_tsp_algorithms(G, n_ants=20, n_iters=50)
+
+#Save comparison results in a csv file
+filename = "../results/comparison.csv"
+with open(filename, mode="a", newline="") as f:
+        writer = csv.writer(f)
+        
+        writer.writerow([
+            n_nodes,
+            n_edges,
+            f"{results['ACO']['time']:.3f}",
+            f"{results['Brute Force']['time']:.3f}",
+            f"{results['Speedup']:.3f}",
+            results["ACO"]["tested_path"],
+            results["Brute Force"]["tested_path"],
+            results["ACO"]["cost"],
+            results["Brute Force"]["cost"],
+            results["ACO"]["path"],
+            results["Brute Force"]["path"]
+        ])
+print(f"Risultati salvati in {filename}")
 
 #Print stats
 print("=== Confronto TSP ACO vs Brute Force ===")
