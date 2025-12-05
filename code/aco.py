@@ -163,7 +163,7 @@ def dfs(G,start):
     tested_path = 0
 
 
-    #A list where each element is: set of starting point, cost of the path, set of visited nodes
+    #A list where each element is: list of starting point, cost of the path, set of visited nodes
     stack = [([start], 0, {start})]
 
     while stack:
@@ -202,7 +202,7 @@ def exhaustive_search(G):
     global_best_cost = float('inf')
     global_tested_path = 0
     
-    #Run a dfs for each node, 
+    #Run a dfs that find only Hamiltonian path for each node, 
     for node in nodes:
 
         local_best_path, local_best_cost,local_tested_path = dfs(G,node)
@@ -309,6 +309,8 @@ def save_results(results):
             writer = csv.writer(f)
             
             writer.writerow([
+                results["n_ants"],
+                results["n_iters"],
                 results["n_nodes"],
                 results["n_edges"],
                 f"{results['ACO']['time']:.3f}",
@@ -327,13 +329,15 @@ def save_results(results):
 # %%
 n_nodes = 14
 n_edges = 70
+n_ants = 10
+n_iters = 5
 G = create_random_graph(n_nodes, n_edges)
 
 #Run Comparison
 #NOTE: for randomly run the comparison i have to create a list of parameters for n_ants and n_iters and then iterate and call the function
 #NOTE: can be interested to run the ACO on really big graphs but the comparison i think is impossible in this case
 #TODO: add parallelization for speedup the runtime
-results = compare_tsp_algorithms(G, n_ants=20, n_iters=50)
+results = compare_tsp_algorithms(G, n_ants, n_iters)
 
 
 
@@ -345,8 +349,11 @@ for algo, res in results.items():
         print(f"{algo}: best cost = {res['cost']}, best path = {res['path']}, time = {res['time']:.4f} s")
 print(f"Speedup (Brute/ACO) ≈ {results['Speedup']:.2f}×")
 
+results["n_ants"] = n_ants
+results["n_iters"] = n_iters
 results["n_nodes"] = n_nodes
 results["n_edges"] = n_edges
+
 #Store the results in a csv file
 save_results(results)
 
