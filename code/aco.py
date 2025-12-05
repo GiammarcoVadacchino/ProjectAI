@@ -301,32 +301,42 @@ def compare_tsp_algorithms(G, n_ants=10, n_iters=30):
 
 
 # %%
+#Save comparison results in a csv file
+
+def save_results(results):
+    path = "../results/comparison.csv"
+    with open(path, mode="a", newline="") as f:
+            writer = csv.writer(f)
+            
+            writer.writerow([
+                results["n_nodes"],
+                results["n_edges"],
+                f"{results['ACO']['time']:.3f}",
+                f"{results['Brute Force']['time']:.3f}",
+                f"{results['Speedup']:.3f}",
+                results["ACO"]["tested_path"],
+                results["Brute Force"]["tested_path"],
+                results["ACO"]["cost"],
+                results["Brute Force"]["cost"],
+                results["ACO"]["path"],
+                results["Brute Force"]["path"]
+            ])
+    print(f"Risultati salvati in {path}")
+
+
+# %%
 n_nodes = 14
 n_edges = 70
 G = create_random_graph(n_nodes, n_edges)
 
 #Run Comparison
+#NOTE: for randomly run the comparison i have to create a list of parameters for n_ants and n_iters and then iterate and call the function
+#NOTE: can be interested to run the ACO on really big graphs but the comparison i think is impossible in this case
+#TODO: add parallelization for speedup the runtime
 results = compare_tsp_algorithms(G, n_ants=20, n_iters=50)
 
-#Save comparison results in a csv file
-filename = "../results/comparison.csv"
-with open(filename, mode="a", newline="") as f:
-        writer = csv.writer(f)
-        
-        writer.writerow([
-            n_nodes,
-            n_edges,
-            f"{results['ACO']['time']:.3f}",
-            f"{results['Brute Force']['time']:.3f}",
-            f"{results['Speedup']:.3f}",
-            results["ACO"]["tested_path"],
-            results["Brute Force"]["tested_path"],
-            results["ACO"]["cost"],
-            results["Brute Force"]["cost"],
-            results["ACO"]["path"],
-            results["Brute Force"]["path"]
-        ])
-print(f"Risultati salvati in {filename}")
+
+
 
 #Print stats
 print("=== Confronto TSP ACO vs Brute Force ===")
@@ -334,6 +344,11 @@ for algo, res in results.items():
     if algo != "Speedup":
         print(f"{algo}: best cost = {res['cost']}, best path = {res['path']}, time = {res['time']:.4f} s")
 print(f"Speedup (Brute/ACO) ≈ {results['Speedup']:.2f}×")
+
+results["n_nodes"] = n_nodes
+results["n_edges"] = n_edges
+#Store the results in a csv file
+save_results(results)
 
 #Visualizations
 pos = nx.spring_layout(G, seed=42)
