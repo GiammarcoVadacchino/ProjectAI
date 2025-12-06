@@ -66,6 +66,7 @@ def create_random_graph(n_nodes=10, n_edges=15, seed=42):
 
 # %%
 #Fitness function: calculate the length of the path
+#TODO: maybe is interested to visualize the fitness function values over the iteration and so visualize the convergence
 def path_length(G, path):
     length = 0
 
@@ -76,10 +77,15 @@ def path_length(G, path):
 
 
 # %%
+#TODO: implement different wat to update the pheromone and for the evaporation of the pheromone, so i can see how the convergence changes
 def ant_colony_optimization(G, n_ants=10, n_iters=30, alpha=1, beta=2, evaporation=0.4, Q=1):
     nodes = list(G.nodes())
     best_path = None
     best_cost = float('inf')
+    avg_costs = []
+    best_costs = []
+    worst_costs = []
+
 
 
     
@@ -120,11 +126,11 @@ def ant_colony_optimization(G, n_ants=10, n_iters=30, alpha=1, beta=2, evaporati
                 unvisited.remove(next_node) # remove the sampled node to the list of unvisited nodes
             
 
-            #Used for skip the calculate of the fitness if the path is not completed
+            #If no hamiltonian path 
             if len(path) < len(nodes):
                 continue
             
-            #Calculate fitness for the path founded
+
             cost = path_length(G, path)
             all_paths.append(path)
             all_costs.append(cost)
@@ -133,6 +139,13 @@ def ant_colony_optimization(G, n_ants=10, n_iters=30, alpha=1, beta=2, evaporati
             if cost < best_cost:
                 best_cost = cost
                 best_path = path
+
+        if len(all_costs) != 0:
+            avg_costs.append(np.mean(all_costs))
+            best_costs.append(min(all_costs))   # local best
+            worst_costs.append(max(all_costs))
+
+        
         
         #Simple evapoation of pheromones with a parameter
         for u,v in G.edges():
@@ -144,6 +157,15 @@ def ant_colony_optimization(G, n_ants=10, n_iters=30, alpha=1, beta=2, evaporati
             for i in range(len(path)-1):
                 u,v = path[i], path[i+1]
                 G[u][v]['pheromone'] += Q / cost
+
+    print(avg_costs)
+    print(best_costs)
+    print(worst_costs)
+    print(f"Lunghezza array costi medi: {len(avg_costs)}")
+    print(f"Lunghezza array costi minimi: {len(best_costs)}")
+    print(f"Lunghezza array costi massimi: {len(worst_costs)}")
+
+    plot_convergence(avg_costs,best_costs,worst_costs)
                 
     return best_path, best_cost,n_iters * n_ants
 
@@ -155,12 +177,14 @@ def ant_colony_optimization(G, n_ants=10, n_iters=30, alpha=1, beta=2, evaporati
 #This make the comparison more faster and maybe allows to use bigger graph for comparison.
 #So i don't consider all the permutation of nodes for the reaserch space but only the all permutation of nodes that are valid path but without generating all possible permutations, instead i do a dfs for each node in the graph.
 #With this method for exhaustive search i still check all the research space.
+#So a candidate solution is always a valid solution cause is an Hamiltonian path and so the i work with a close reaseach space, that avoid to introduce penalty term in the fitness function and avoid to increase the complexity of the ACO
 def dfs(G,start):
 
     nodes = list(G.nodes())
     best_cost = float('inf')
     best_path = None
     tested_path = 0
+    all_costs = []
 
 
     #A list where each element is: list of starting point, cost of the path, set of visited nodes
@@ -175,6 +199,7 @@ def dfs(G,start):
         #If all nodes are visited once
         if len(path) == len(nodes):
             tested_path += 1
+            all_costs.append(cost)
             if cost < best_cost:
                 best_cost = cost
                 best_path = path
@@ -192,7 +217,7 @@ def dfs(G,start):
                 ))
 
 
-    return best_path,best_cost,tested_path
+    return best_path,best_cost,tested_path,all_costs
 
     
 #Exaustive research used for comparing the performance with ACO
@@ -201,18 +226,47 @@ def exhaustive_search(G):
     gloabal_best_path = None
     global_best_cost = float('inf')
     global_tested_path = 0
+    avg_costs = []
+    best_costs = []
+    worst_costs = []
     
     #Run a dfs that find only Hamiltonian path for each node, 
     for node in nodes:
 
-        local_best_path, local_best_cost,local_tested_path = dfs(G,node)
+        local_best_path, local_best_cost,local_tested_path,all_costs = dfs(G,node)
         global_tested_path += local_tested_path
+        avg_costs.append(np.mean(all_costs))
+        best_costs.append(min(all_costs))
+        worst_costs.append(max(all_costs))
+
 
         if local_best_path is not None and local_best_cost < global_best_cost:
             gloabal_best_path = local_best_path
             global_best_cost = local_best_cost
 
+    plot_convergence(avg_costs,best_costs,worst_costs)
+
     return gloabal_best_path,global_best_cost, global_tested_path
+
+
+
+# %%
+
+def plot_convergence(avg_costs, best_costs, worst_costs):
+    iters = range(1,len(avg_costs) + 1)
+
+    plt.figure(figsize=(10,5))
+    plt.plot(iters, best_costs, label="Best cost", linewidth=2)
+    plt.plot(iters, avg_costs, label="Average cost", linestyle="--")
+    plt.plot(iters, worst_costs, label="Worst cost", linestyle=":")
+
+    plt.xlabel("Iteration")
+    plt.ylabel("Cost")
+    plt.title("ACO Convergence Curve")
+    plt.grid(True)
+    plt.xticks(iters)
+    plt.legend(loc="upper right")
+    plt.show()
 
 
 
@@ -330,7 +384,7 @@ def save_results(results):
 n_nodes = 14
 n_edges = 70
 n_ants = 10
-n_iters = 5
+n_iters = 20
 G = create_random_graph(n_nodes, n_edges)
 
 #Run Comparison
