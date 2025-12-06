@@ -1,7 +1,9 @@
+# %%
 import networkx as nx
 import random
 
 
+# %%
 def create_random_graph(n_nodes=10, n_edges=15, seed=42):
 
     #For reproducibility

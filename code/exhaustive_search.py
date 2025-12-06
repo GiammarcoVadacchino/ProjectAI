@@ -1,6 +1,8 @@
+# %%
 import numpy as np
 
 
+# %%
 #The idea for the exhaustive search is that we have to do a dfs for each node on the graph, this allows us to generate all the possible valid paths.
 #I can do this because a solution is in the research space if it is a possible path, so all the possibles paths are in the research space and the reaserch space is close.
 #This make the comparison more faster and maybe allows to use bigger graph for comparison.
@@ -48,7 +50,8 @@ def dfs(G,start):
 
     return best_path,best_cost,tested_path,all_costs
 
-    
+
+# %%
 #Exaustive research used for comparing the performance with ACO
 def exhaustive_search(G):
     nodes = list(G.nodes())

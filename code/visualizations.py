@@ -1,8 +1,10 @@
+# %%
 import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
 
 
+# %%
 def plot_convergence(avg_costs, best_costs, worst_costs,title):
     iters = range(1,len(avg_costs) + 1)
 
@@ -20,6 +22,7 @@ def plot_convergence(avg_costs, best_costs, worst_costs,title):
     plt.show()
 
 
+# %%
 def plot_best_cost_comparison(aco_best, bf_best, title="ACO vs BF Best Cost Comparison"):
 
     # Calcolo asse X comune (fino al massimo delle iterazioni)
@@ -55,6 +58,7 @@ def plot_best_cost_comparison(aco_best, bf_best, title="ACO vs BF Best Cost Comp
     plt.show()
 
 
+# %%
 def plot_tsp_graph(G, pos, best_path=None, title="TSP Graph"):
     
     plt.figure(figsize=(7,5))
@@ -72,6 +76,7 @@ def plot_tsp_graph(G, pos, best_path=None, title="TSP Graph"):
     plt.show()
 
 
+# %%
 def draw_tsp_path_clean(G, path, title="Shortest Path"):
     
     path_edges = []
