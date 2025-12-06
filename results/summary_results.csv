@@ -1,0 +1,4 @@
+strategy_name,n_ants,n_iters,n_nodes,n_edges,time_ACO,time_BF,speedup,tested_path_ACO,tested_path_BF,random_graph,best_cost_path_ACO,best_cost_path_BF,
+MMAS,15,30,10,80,0.036 ± 0.004,3.801 ± 0.628,107.508 ± 21.908,450,1202602.889 ± 44850.211,True,,
+EAS,20,40,12,50,0.054 ± 0.004,0.106 ± 0.028,1.939 ± 0.406,800,3080.000 ± 0.000,False,,
+BWAS,20,50,14,70,0.120 ± 0.041,4.378 ± 0.624,39.694 ± 12.913,1000,164557.000 ± 0.000,False,,
