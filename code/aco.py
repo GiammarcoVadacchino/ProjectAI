@@ -157,17 +157,8 @@ def ant_colony_optimization(G, n_ants=10, n_iters=30, alpha=1, beta=2, evaporati
             for i in range(len(path)-1):
                 u,v = path[i], path[i+1]
                 G[u][v]['pheromone'] += Q / cost
-
-    print(avg_costs)
-    print(best_costs)
-    print(worst_costs)
-    print(f"Lunghezza array costi medi: {len(avg_costs)}")
-    print(f"Lunghezza array costi minimi: {len(best_costs)}")
-    print(f"Lunghezza array costi massimi: {len(worst_costs)}")
-
-    plot_convergence(avg_costs,best_costs,worst_costs)
-                
-    return best_path, best_cost,n_iters * n_ants
+          
+    return best_path, best_cost,n_iters * n_ants,avg_costs,best_costs,worst_costs
 
 
 
@@ -244,15 +235,13 @@ def exhaustive_search(G):
             gloabal_best_path = local_best_path
             global_best_cost = local_best_cost
 
-    plot_convergence(avg_costs,best_costs,worst_costs)
-
-    return gloabal_best_path,global_best_cost, global_tested_path
+    return gloabal_best_path,global_best_cost, global_tested_path, avg_costs,best_costs,worst_costs
 
 
 
 # %%
 
-def plot_convergence(avg_costs, best_costs, worst_costs):
+def plot_convergence(avg_costs, best_costs, worst_costs,title):
     iters = range(1,len(avg_costs) + 1)
 
     plt.figure(figsize=(10,5))
@@ -262,10 +251,48 @@ def plot_convergence(avg_costs, best_costs, worst_costs):
 
     plt.xlabel("Iteration")
     plt.ylabel("Cost")
-    plt.title("ACO Convergence Curve")
+    plt.title(title)
     plt.grid(True)
     plt.xticks(iters)
     plt.legend(loc="upper right")
+    plt.show()
+
+
+
+# %%
+
+def plot_best_cost_comparison(aco_best, bf_best, title="ACO vs BF Best Cost Comparison"):
+
+    # Calcolo asse X comune (fino al massimo delle iterazioni)
+    max_iters = max(len(aco_best), len(bf_best))
+    common_x = np.arange(1, max_iters + 1)
+
+    # Allineo le liste riempiendo con NaN per non mostrare dati mancanti
+    aco_best = np.array(aco_best, dtype=float)
+    aco_best_padded = np.pad(aco_best, (0, max_iters - len(aco_best)), 
+                             constant_values=np.nan)
+    
+    bf_best = np.array(bf_best, dtype=float)
+    bf_best_padded = np.pad(bf_best, (0, max_iters - len(bf_best)), 
+                            constant_values=np.nan)
+
+    # Plot
+    plt.figure(figsize=(10, 5))
+    plt.plot(common_x, aco_best_padded, label="ACO Best cost", linewidth=2)
+    plt.plot(common_x, bf_best_padded, label="Brute Force Best cost", linewidth=2)
+
+    plt.title(title)
+    plt.xlabel("Iteration")
+    plt.ylabel("Best Cost")
+    plt.xticks(common_x)
+    plt.grid(True)
+    plt.legend()
+
+    # Set del range Y comune
+    all_values = np.concatenate([aco_best, bf_best])
+    plt.ylim(min(all_values) - 2, max(all_values) + 2)
+
+    plt.tight_layout()
     plt.show()
 
 
@@ -334,13 +361,19 @@ def compare_tsp_algorithms(G, n_ants=10, n_iters=30):
 
     #Run aco
     start_aco = time.time()
-    best_path_aco, best_cost_aco,tested_paths_aco = ant_colony_optimization(G, n_ants=n_ants, n_iters=n_iters)
+    best_path_aco, best_cost_aco,tested_paths_aco,avg_costs,best_costs_aco,worst_costs = ant_colony_optimization(G, n_ants=n_ants, n_iters=n_iters)
     time_aco = time.time() - start_aco
+
+    plot_convergence(avg_costs,best_costs_aco,worst_costs,title = "ACO fitness convergence")
 
     #Run brute force
     start_brute = time.time()
-    best_path_brute, best_cost_brute, tested_paths_bf = exhaustive_search(G)
+    best_path_brute, best_cost_brute, tested_paths_bf,avg_costs,best_costs_bf,worst_costs = exhaustive_search(G)
     time_brute = time.time() - start_brute
+
+    plot_convergence(avg_costs,best_costs_bf,worst_costs,title = "Brute Force fitness convergence")
+
+    plot_best_cost_comparison(best_costs_aco,best_costs_bf,title = "ACO vs BF Best Cost Comparison")
 
     print(f"Number of tested path with ACO: {tested_paths_aco}")
     print(f"Number of tested paths with Brute Force: {tested_paths_bf}")
@@ -383,8 +416,8 @@ def save_results(results):
 # %%
 n_nodes = 14
 n_edges = 70
-n_ants = 10
-n_iters = 20
+n_ants = 20
+n_iters = 50
 G = create_random_graph(n_nodes, n_edges)
 
 #Run Comparison
