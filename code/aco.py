@@ -77,18 +77,110 @@ def path_length(G, path):
 
 
 # %%
-#TODO: implement different wat to update the pheromone and for the evaporation of the pheromone, so i can see how the convergence changes
-def ant_colony_optimization(G, n_ants=10, n_iters=30, alpha=1, beta=2, evaporation=0.4, Q=1):
+#TODO: implement some variation of update and evaporation of pheromones, so i can visualize the difference of the fitness function among variants of ACO, and confront some variants of ACO with the exhausitivhe search
+#NOTE: after i complete this things, i need to refactor a little bit the code, run some toy tests, so i verify that all works properly and after that maybe i search a method too speedup the exhaustivhe seach, so i can use bigger graphs
+#NOTE: is better to have a exhaustive search that find only hamiltonian path or any kind of path between two nodes?
+#NOTE: maybe i can try different type of exhaustifve search, all possible paths, all permutation, all hamiltonian etdc...., 
+
+"""
+Classic ANt System: the goal is to update the pheromones of all edges that are crossed by all the ants.
+So if an edge has a low cost, more pheromone is gonna be released on that edge, so this makes greater the probability that the edge is selected by other ants in later iterations.
+"""
+
+def update_pheromone_AS(G, paths, costs, Q=1, **kwargs):
+    for path, cost in zip(paths, costs):
+        for i in range(len(path)-1):
+            u, v = path[i], path[i+1]
+            G[u][v]['pheromone'] += Q / cost # ph = Q / total cost of the path
+
+"""
+Elitist Ant System: it is like the classical update, but for each iteration the pheromones of the best path founded are increased by a factor.
+So this accelerate the convergance, it increase the probability that in the later iterations the other ants follows these "elitist" path.
+"""
+
+def update_pheromone_EAS(G, paths, costs, best_path_global, best_cost_global, Q=1, elitist_factor=5, **kwargs):
+
+    update_pheromone_AS(G, paths, costs, Q) # classic update
+
+    #Increasing pheromones on the best path
+    for i in range(len(best_path_global)-1):
+        u, v = best_path_global[i], best_path_global[i+1]
+        G[u][v]['pheromone'] += elitist_factor * Q / best_cost_global # classic update but multiplied by a costant 
+
+
+"""
+Rank-Based Ant System: the idea is to not update all the path founded by all the ants, but only the path that are in the top K paths, so the K path with lowest cost, so lowest fitness value.
+So the best paths have more increment of pheromons compared to the lower paths in the top K, so if ad path has a better position in the top K received more pheromons respect to a path that is in a lower position in the top K.
+It reduces the proability that paths with higher costs may influence the behavior of all the ants.
+"""
+
+def update_pheromone_Rank(G, paths, costs, Q=1, rank_k=3, **kwargs):
+
+    sorted_idx = np.argsort(costs) # get ordered indexing of cost of the paths
+
+    for rank, idx in enumerate(sorted_idx[:rank_k]):
+        weight = rank_k - rank # costant factor, higher position in top K means higher factor of moltiplication
+        path = paths[idx]
+        cost = costs[idx]
+        for i in range(len(path)-1):
+            u, v = path[i], path[i+1]
+            G[u][v]['pheromone'] += weight * Q / cost
+
+"""
+Max-Min Ant System: only the best path update the pheromones, in this method are used a lower and upper bound for the pheromones to avoid the prominance of an edge, or "evitare stagnazione"??,
+so the goal of these bounds is to try to stabilize the realase of the pheromones.
+So the research is more stable, less risk of premature convergence on local best path.
+"""
+
+def update_pheromone_MMAS(G, paths, costs, Q=1, tau_min=0.1, tau_max=10, **kwargs):
+
+    best_idx = np.argmin(costs) #index of minimum cost correlated to the best path
+    path = paths[best_idx]
+    cost = costs[best_idx]
+    for i in range(len(path)-1):
+        u, v = path[i], path[i+1]
+        G[u][v]['pheromone'] += Q / cost 
+        G[u][v]['pheromone'] = max(tau_min, min(G[u][v]['pheromone'], tau_max)) # apply upper and lower bound
+
+
+"""
+Best-Worst Ant System: the idea is to increase the pheromones on the best path and decrease the worst path.
+Reduces the probability of selecting worst paths in the future iterations, increase the probability of the best paths maintaining a little bit of diversity.
+"""
+
+def update_pheromone_BWAS(G, paths, costs, Q=1, **kwargs):
+    best_idx = np.argmin(costs)
+    worst_idx = np.argmax(costs)
+    
+    #increase pheromones on the best path
+    path = paths[best_idx]
+    cost = costs[best_idx]
+    for i in range(len(path)-1):
+        u, v = path[i], path[i+1]
+        G[u][v]['pheromone'] += Q / cost
+    
+    path_w = paths[worst_idx]
+    cost_w = costs[worst_idx]
+
+    #deacrease pheromones on the worst path
+    for i in range(len(path_w)-1):
+        u, v = path_w[i], path_w[i+1]
+        G[u][v]['pheromone'] -= 0.1 * Q / cost_w
+        G[u][v]['pheromone'] = max(0.01, G[u][v]['pheromone']) # avoid to get a negative quantity of pheromones
+
+
+
+# %%
+#TODO: implement different want to update the pheromone and for the evaporation of the pheromone, so i can see how the convergence changes
+def ant_colony_optimization(G, n_ants=10, n_iters=30, alpha=1, beta=2, evaporation=0.4, Q=1,pheromone_update_func=update_pheromone_BWAS,**kwargs):
     nodes = list(G.nodes())
-    best_path = None
-    best_cost = float('inf')
+    best_path_global = None
+    best_cost_global = float('inf')
     avg_costs = []
     best_costs = []
     worst_costs = []
 
 
-
-    
     for _ in range(n_iters):
         all_paths = []
         all_costs = []
@@ -136,9 +228,9 @@ def ant_colony_optimization(G, n_ants=10, n_iters=30, alpha=1, beta=2, evaporati
             all_costs.append(cost)
             
             #Updating the best solution found
-            if cost < best_cost:
-                best_cost = cost
-                best_path = path
+            if cost < best_cost_global:
+                best_cost_global = cost
+                best_path_global = path
 
         if len(all_costs) != 0:
             avg_costs.append(np.mean(all_costs))
@@ -152,13 +244,14 @@ def ant_colony_optimization(G, n_ants=10, n_iters=30, alpha=1, beta=2, evaporati
             G[u][v]['pheromone'] *= (1 - evaporation)
         
 
-        #Updating pheromone of edges and so the probability 
-        for path, cost in zip(all_paths, all_costs):
-            for i in range(len(path)-1):
-                u,v = path[i], path[i+1]
-                G[u][v]['pheromone'] += Q / cost
+        if 'best_path_global' in kwargs:
+            kwargs['best_path_global'] = best_path_global
+        if 'best_cost_global' in kwargs:
+            kwargs['best_cost_global'] = best_cost_global
+
+        pheromone_update_func(G, all_paths, all_costs, Q=Q, **kwargs)
           
-    return best_path, best_cost,n_iters * n_ants,avg_costs,best_costs,worst_costs
+    return best_path_global, best_cost_global,n_iters * n_ants,avg_costs,best_costs,worst_costs
 
 
 
