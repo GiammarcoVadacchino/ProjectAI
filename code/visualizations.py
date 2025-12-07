@@ -5,6 +5,7 @@ import numpy as np
 
 
 # %%
+#Plot the convergence of the fitness and the population
 def plot_convergence(avg_costs, best_costs, worst_costs,title):
     iters = range(1,len(avg_costs) + 1)
 
@@ -19,17 +20,16 @@ def plot_convergence(avg_costs, best_costs, worst_costs,title):
     plt.grid(True)
     plt.xticks(iters)
     plt.legend(loc="upper right")
-    plt.show()
+    plt.savefig(f"../results/{title}.png")
 
 
 # %%
 def plot_best_cost_comparison(aco_best, bf_best, title="ACO vs BF Best Cost Comparison"):
 
-    # Calcolo asse X comune (fino al massimo delle iterazioni)
+    #Calculate X axis
     max_iters = max(len(aco_best), len(bf_best))
     common_x = np.arange(1, max_iters + 1)
 
-    # Allineo le liste riempiendo con NaN per non mostrare dati mancanti
     aco_best = np.array(aco_best, dtype=float)
     aco_best_padded = np.pad(aco_best, (0, max_iters - len(aco_best)), 
                              constant_values=np.nan)
@@ -50,7 +50,7 @@ def plot_best_cost_comparison(aco_best, bf_best, title="ACO vs BF Best Cost Comp
     plt.grid(True)
     plt.legend()
 
-    # Set del range Y comune
+    #Allineate y values
     all_values = np.concatenate([aco_best, bf_best])
     plt.ylim(min(all_values) - 2, max(all_values) + 2)
 

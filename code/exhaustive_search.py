@@ -30,11 +30,14 @@ def dfs(G,start):
         #If all nodes are visited once
         if len(path) == len(nodes):
             tested_path += 1
-            all_costs.append(cost)
-            if cost < best_cost:
-                best_cost = cost
-                best_path = path
-            continue
+            start = path[0]  # nodo di partenza
+            if G.has_edge(path[-1], start):
+                cost += G[path[-1]][start]['weight']
+                path_complete = path + [start]
+                all_costs.append(cost)
+                if cost < best_cost:
+                    best_cost = cost
+                    best_path = path_complete
     
         #Checking for neighbors, so we build the path
         for next in G.neighbors(current):
@@ -55,25 +58,28 @@ def dfs(G,start):
 #Exaustive research used for comparing the performance with ACO
 def exhaustive_search(G):
     nodes = list(G.nodes())
-    gloabal_best_path = None
-    global_best_cost = float('inf')
-    global_tested_path = 0
+    
+    #Constant starting node
+    start_node = nodes[0]
+    
+    best_path = None
+    best_cost = float('inf')
+    tested_path = 0
     avg_costs = []
     best_costs = []
     worst_costs = []
+
+    #Run dfs 
+    local_best_path, local_best_cost, local_tested_path, all_costs = dfs(G, start_node)
     
-    #Run a dfs that find only Hamiltonian path for each node, 
-    for node in nodes:
+    tested_path = local_tested_path
+    avg_costs.append(np.mean(all_costs))
+    best_costs.append(min(all_costs))
+    worst_costs.append(max(all_costs))
 
-        local_best_path, local_best_cost,local_tested_path,all_costs = dfs(G,node)
-        global_tested_path += local_tested_path
-        avg_costs.append(np.mean(all_costs))
-        best_costs.append(min(all_costs))
-        worst_costs.append(max(all_costs))
+    if local_best_path is not None and local_best_cost < best_cost:
+        best_path = local_best_path
+        best_cost = local_best_cost
 
+    return best_path, best_cost, tested_path, avg_costs, best_costs, worst_costs
 
-        if local_best_path is not None and local_best_cost < global_best_cost:
-            gloabal_best_path = local_best_path
-            global_best_cost = local_best_cost
-
-    return gloabal_best_path,global_best_cost, global_tested_path, avg_costs,best_costs,worst_costs

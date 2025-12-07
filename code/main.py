@@ -7,14 +7,14 @@ from aco import ant_colony_optimization
 from exhaustive_search import exhaustive_search
 from visualizations import (
     plot_convergence,
-    plot_best_cost_comparison,
-    plot_tsp_graph,
-    draw_tsp_path_clean
+    plot_best_cost_comparison
 )
 import pandas as pd
 
+#NOTE: in this project i consider the Hamiltonian paths with the need to the return in the initial node (TSP)
 
 # %%
+#Run the comparison between ACO and brute force
 def compare_tsp_algorithms(G, n_ants=10, n_iters=30, strategy_name="Basic ACO"):
 
     #Run aco
@@ -22,6 +22,7 @@ def compare_tsp_algorithms(G, n_ants=10, n_iters=30, strategy_name="Basic ACO"):
     best_path_aco, best_cost_aco,tested_paths_aco,avg_costs,best_costs_aco,worst_costs = ant_colony_optimization(G, n_ants=n_ants, n_iters=n_iters, strategy_name=strategy_name)
     time_aco = time.time() - start_aco
 
+    #Plot ACO convergence
     plot_convergence(avg_costs,best_costs_aco,worst_costs,title = f"ACO fitness convergence ({strategy_name})")
 
     #Run brute force
@@ -29,12 +30,9 @@ def compare_tsp_algorithms(G, n_ants=10, n_iters=30, strategy_name="Basic ACO"):
     best_path_brute, best_cost_brute, tested_paths_bf,avg_costs,best_costs_bf,worst_costs = exhaustive_search(G)
     time_brute = time.time() - start_brute
 
-    plot_convergence(avg_costs,best_costs_bf,worst_costs,title = "Brute Force fitness convergence")
-
-    plot_best_cost_comparison(best_costs_aco,best_costs_bf,title = f"ACO ({strategy_name}) vs BF Best Cost Comparison")
 
     print(f"Number of tested path with ACO: {tested_paths_aco}")
-    print(f"Number of tested paths with Brute Force: {tested_paths_bf}")
+    print(f"Number of tested paths with Brute Force: {tested_paths_bf}") # (N-1)! possible paths if the graph is fully connected and N is the number of the nodes
 
     #Results
     result = {
@@ -52,6 +50,7 @@ def save_results(results,path):
     with open(path, mode="a", newline="") as f:
             writer = csv.writer(f)
             
+            #write results in a csv file
             writer.writerow([
                 results["strategy_name"],
                 results["n_ants"],
@@ -63,9 +62,11 @@ def save_results(results,path):
                 results['Speedup'],
                 results["ACO"]["tested_path"],
                 results["Brute Force"]["tested_path"],
-                results["random_graph"],
                 results["ACO"]["cost"],
-                results["Brute Force"]["cost"]
+                results["Brute Force"]["cost"],
+                results["random_graph"],
+                results["fully_connected"],
+                results["iterations"]
                
             ])
             
@@ -74,46 +75,55 @@ def save_results(results,path):
 
 # %%
 
-# Definisci le configurazioni di test da eseguire
-# Ogni configurazione è un dizionario con i parametri del test
+#Define the configurations of the tests that will be runned
 test_configurations = [
-    {"n_nodes": 10, "n_edges": 80, "n_ants": 15, "n_iters": 30, "seed": 42, "strategy_name": "MMAS","change_seed": True},
-    {"n_nodes": 12, "n_edges": 50, "n_ants": 20, "n_iters": 40, "seed": 43, "strategy_name": "EAS"},
-    {"n_nodes": 14, "n_edges": 70, "n_ants": 20, "n_iters": 50, "seed": 44, "strategy_name": "BWAS"},
-    {"n_nodes": 14, "n_edges": 70, "n_ants": 20, "n_iters": 50, "seed": 44, "strategy_name": "MMAS"},
-    {"n_nodes": 14, "n_edges": 70, "n_ants": 20, "n_iters": 50, "seed": 44, "strategy_name": "Rank"},
+    {"n_nodes": 8, "n_edges": 80, "n_ants": 8, "n_iters": 24, "seed": 42, "strategy_name": "Basic ACO","change_seed": False,"Fully_connected": True, "iterations": 10},
+    {"n_nodes": 10, "n_edges": 50, "n_ants": 10, "n_iters": 30, "seed": 43, "strategy_name": "Basic ACO","change_seed": False,"Fully_connected": True, "iterations": 10},
+    {"n_nodes": 12, "n_edges": 70, "n_ants": 12, "n_iters": 36, "seed": 44, "strategy_name": "Basic ACO","change_seed": False,"Fully_connected": True, "iterations": 1},
+    {"n_nodes": 13, "n_edges": 70, "n_ants": 14, "n_iters": 42, "seed": 45, "strategy_name": "Basic ACO","change_seed": False,"Fully_connected": True,"iterations": 1},
+
+    {"n_nodes": 8, "n_edges": 80, "n_ants": 8, "n_iters": 24, "seed": 42, "strategy_name": "EAS","change_seed": False,"Fully_connected": True, "iterations": 10},
+    {"n_nodes": 10, "n_edges": 50, "n_ants": 10, "n_iters": 30, "seed": 43, "strategy_name": "EAS","change_seed": False,"Fully_connected": True, "iterations": 10},
+    {"n_nodes": 12, "n_edges": 70, "n_ants": 12, "n_iters": 36, "seed": 44, "strategy_name": "EAS","change_seed": False,"Fully_connected": True, "iterations": 10},
+    {"n_nodes": 13, "n_edges": 70, "n_ants": 14, "n_iters": 42, "seed": 45, "strategy_name": "EAS","change_seed": False,"Fully_connected": True,"iterations": 4},
+
+    {"n_nodes": 8, "n_edges": 80, "n_ants": 8, "n_iters": 24, "seed": 42, "strategy_name": "Rank","change_seed": False,"Fully_connected": True, "iterations": 10},
+    {"n_nodes": 10, "n_edges": 50, "n_ants": 10, "n_iters": 30, "seed": 43, "strategy_name": "Rank","change_seed": False,"Fully_connected": True, "iterations": 10},
+    {"n_nodes": 12, "n_edges": 70, "n_ants": 12, "n_iters": 36, "seed": 44, "strategy_name": "Rank","change_seed": False,"Fully_connected": True, "iterations": 10},
+    {"n_nodes": 13, "n_edges": 70, "n_ants": 14, "n_iters": 42, "seed": 45, "strategy_name": "Rank","change_seed": False,"Fully_connected": True,"iterations": 4},
+
+    {"n_nodes": 8, "n_edges": 80, "n_ants": 8, "n_iters": 24, "seed": 42, "strategy_name": "MMAS","change_seed": False,"Fully_connected": True, "iterations": 10},
+    {"n_nodes": 10, "n_edges": 50, "n_ants": 10, "n_iters": 30, "seed": 43, "strategy_name": "MMAS","change_seed": False,"Fully_connected": True, "iterations": 10},
+    {"n_nodes": 12, "n_edges": 70, "n_ants": 12, "n_iters": 36, "seed": 44, "strategy_name": "MMAS","change_seed": False,"Fully_connected": True, "iterations": 10},
+    {"n_nodes": 13, "n_edges": 70, "n_ants": 14, "n_iters": 42, "seed": 45, "strategy_name": "MMAS","change_seed": False,"Fully_connected": True,"iterations": 4},
+
+    {"n_nodes": 8, "n_edges": 80, "n_ants": 8, "n_iters": 24, "seed": 42, "strategy_name": "BWAS","change_seed": False,"Fully_connected": True, "iterations": 10},
+    {"n_nodes": 10, "n_edges": 50, "n_ants": 10, "n_iters": 30, "seed": 43, "strategy_name": "BWAS","change_seed": False,"Fully_connected": True, "iterations": 10},
+    {"n_nodes": 12, "n_edges": 70, "n_ants": 12, "n_iters": 36, "seed": 44, "strategy_name": "BWAS","change_seed": False,"Fully_connected": True, "iterations": 10},
+    {"n_nodes": 13, "n_edges": 70, "n_ants": 14, "n_iters": 42, "seed": 45, "strategy_name": "BWAS","change_seed": False,"Fully_connected": True,"iterations": 4},
 ]
 
-
+#Run a single test
 def run_single_test(config, test_number, total_tests):
-    """
-    Esegue un singolo test con la configurazione specificata
-    
-    Args:
-        config: dizionario con i parametri del test
-        test_number: numero del test corrente
-        total_tests: numero totale di test
-    """
+
     print(f"\n{'='*80}")
     print(f"Running Test {test_number}/{total_tests}")
     print(f"Configuration: {config}")
     print(f"{'='*80}\n")
     
-    # Estrai parametri dalla configurazione
+    #Get parameters from the configuration
     n_nodes = config["n_nodes"]
     n_edges = config["n_edges"]
     n_ants = config["n_ants"]
     n_iters = config["n_iters"]
     seed = config["seed"]
-    strategy_name = config.get("strategy_name", "Basic ACO")  # Default a "Basic ACO" se non specificato
+    strategy_name = config["strategy_name"] 
     
-    # Crea il grafo
-    G = create_random_graph(n_nodes, n_edges, seed)
+    
+    #Build the graph
+    G = create_random_graph(n_nodes, n_edges, seed,fully_connected = config["Fully_connected"])
 
     # Run Comparison
-    #NOTE: for randomly run the comparison i have to create a list of parameters for n_ants and n_iters and then iterate and call the function
-    #NOTE: can be interested to run the ACO on really big graphs but the comparison i think is impossible in this case
-    #TODO: add parallelization for speedup the runtime
     results = compare_tsp_algorithms(G, n_ants, n_iters, strategy_name)
 
     # Print stats
@@ -129,24 +139,21 @@ def run_single_test(config, test_number, total_tests):
     results["n_nodes"] = n_nodes
     results["n_edges"] = n_edges
     results["random_graph"] = config.get("change_seed")
+    results["fully_connected"] = config["Fully_connected"]
+    results["iterations"] = config["iterations"]
 
-    # Store the results in a csv file
+    # Store the results of the single run test in a csv file
     save_results(results,path = "../results/comparison.csv")
 
-    # Visualizations
-    #pos = nx.spring_layout(G, seed=seed)
-    #plot_tsp_graph(G, pos, title=f"TSP GRAPH ({n_nodes} nodes - {n_edges} edges) - Test {test_number}")
-    #draw_tsp_path_clean(G, results["ACO"]["path"], title=f"Shortest Path ACO ({strategy_name}) - Test {test_number}")
-    #draw_tsp_path_clean(G, results["Brute Force"]["path"], title=f"Shortest Path (Brute Force) - Test {test_number}")
 
     return results
 
 
-# Ciclo su tutte le configurazioni
+
 
 all_results = []
-number_of_iterations_per_test = 10
 
+#Run all the tests with the configurations
 for idx, config in enumerate(test_configurations, start=1):
 
     print(f"\n== RUNNING CONFIG {idx}/{len(test_configurations)} ==")
@@ -154,17 +161,16 @@ for idx, config in enumerate(test_configurations, start=1):
     base_seed = config["seed"]
     change_seed = config.get("change_seed", False)
 
-    # Esegui 30 test
-    for run_id in range(1, number_of_iterations_per_test):
+    #Run a certain number of times a single test with the same configuration, used to obtain the mean and std for speedup and costs differences
+    for run_id in range(1, config["iterations"]+1):
 
-        # Gestione seed
+        #Apply the tests on random graphs or the same graph
         if change_seed:
-            config["seed"] = base_seed + run_id  # cambia seed ad ogni run
+            config["seed"] = base_seed + run_id  #chage the seed for randomness
         else:
-            config["seed"] = base_seed  # seed fisso
+            config["seed"] = base_seed 
 
         res = run_single_test(config, idx, len(test_configurations))
-        res["test_number"] = run_id  # aggiungo questo campo
         all_results.append(res)
 
     # ---- FLATTEN RESULTS ----
@@ -181,22 +187,22 @@ for idx, config in enumerate(test_configurations, start=1):
             "n_iters": r["n_iters"],
             "n_nodes": r["n_nodes"],
             "n_edges": r["n_edges"],
-            "tested_path": r["Brute Force"]["tested_path"],
-            "test_number": r["test_number"]
+            "tested_path": r["Brute Force"]["tested_path"]
         })
 
     df = pd.DataFrame(rows)
 
-    # ---- SUMMARY STATS ----
+    #Calculate the mean and the std for the metrics
     numeric_cols = ["ACO_cost", "ACO_time", "Speedup","BF_time","BF_cost","tested_path"]
     summary = pd.DataFrame({
         "mean": df[numeric_cols].mean(),
         "std": df[numeric_cols].std()
     })
 
-    # ---- SAVE SINGLE CONFIG SUMMARY USING save_results ----
+    
     summary_path = "../results/summary_results.csv"
 
+    #Build the dict with all the values that will be stored
     summary_result_dict = {
         "strategy_name": config["strategy_name"],
         "n_ants": config["n_ants"],
@@ -205,7 +211,7 @@ for idx, config in enumerate(test_configurations, start=1):
         "n_edges": config["n_edges"],
         "ACO": {
             "time": f"{summary.loc['ACO_time', 'mean']:.3f} ± {summary.loc['ACO_time', 'std']:.3f}",
-            "cost": None,
+            "cost": f"{summary.loc['ACO_cost', 'mean']:.3f} ± {summary.loc['ACO_cost', 'std']:.3f}",
             "tested_path": config["n_ants"] * config["n_iters"],
         },
         "Brute Force": {
@@ -214,10 +220,12 @@ for idx, config in enumerate(test_configurations, start=1):
             "tested_path": f"{summary.loc['tested_path', 'mean']:.3f} ± {summary.loc['tested_path', 'std']:.3f}",
         },
         "Speedup": f"{summary.loc['Speedup', 'mean']:.3f} ± {summary.loc['Speedup', 'std']:.3f}",
-        "test_number": "MEAN",
-        "random_graph": change_seed
+        "random_graph": change_seed,
+        "fully_connected": config["Fully_connected"],
+        "iterations": config["iterations"]
     }
 
+    #save all avg results
     save_results(summary_result_dict, summary_path)
 
     all_results = []
