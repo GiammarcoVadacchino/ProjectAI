@@ -1,4 +1,6 @@
-strategy_name,n_ants,n_iters,n_nodes,n_edges,time_ACO,time_BF,speedup,tested_path_ACO,tested_path_BF,random_graph,best_cost_path_ACO,best_cost_path_BF,
-MMAS,15,30,10,80,0.036 ± 0.004,3.801 ± 0.628,107.508 ± 21.908,450,1202602.889 ± 44850.211,True,,
-EAS,20,40,12,50,0.054 ± 0.004,0.106 ± 0.028,1.939 ± 0.406,800,3080.000 ± 0.000,False,,
-BWAS,20,50,14,70,0.120 ± 0.041,4.378 ± 0.624,39.694 ± 12.913,1000,164557.000 ± 0.000,False,,
+strategy_name,n_ants,n_iters,n_nodes,n_edges,time_ACO,time_BF,speedup,tested_path_ACO,tested_path_BF,cost_ACO,random_graph,fully_connected,iterations
+Basic ACO,8,24,8,80,0.013 ± 0.008,0.016 ± 0.003,1.366 ± 0.266,192,5040.000 ± 0.000,16.000 ± 0.000,,False,True,10
+Basic ACO,10,30,10,50,0.034 ± 0.025,1.113 ± 0.081,42.119 ± 15.298,300,362880.000 ± 0.000,14.000 ± 0.000,,False,True,10
+Basic ACO,12,36,12,70,0.045 ± nan,121.386 ± nan,2705.529 ± nan,432,39916800.000 ± nan,19.000 ± nan,,False,True,1
+Basic ACO,8,24,8,80,0.012 ± 0.002,0.017 ± 0.004,1.444 ± 0.430,192,5040.000 ± 0.000,16.000 ± 0.000,,False,True,10
+Basic ACO,8,24,8,80,0.010 ± 0.000,0.014 ± 0.000,1.355 ± 0.066,192,5040.000 ± 0.000,16.000 ± 0.000,,False,True,10
