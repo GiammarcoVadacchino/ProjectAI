@@ -1,9 +1,7 @@
-# %%
 import numpy as np
 import random
 
 
-# %%
 #Fitness function: calculate the length of the path
 def path_length(G, path):
     length = 0
@@ -14,7 +12,7 @@ def path_length(G, path):
     return length
 
 
-# %%
+# +
 """
 Classic ANt System: the goal is to update the pheromones of all edges that are crossed by all the ants.
 So if an edge has a low cost, more pheromone is gonna be released on that edge, so this makes greater the probability that the edge is selected by other ants in later iterations.
@@ -26,7 +24,7 @@ def update_pheromone_AS(G, paths, costs, Q=1, **kwargs):
             u, v = path[i], path[i+1]
             G[u][v]['pheromone'] += Q / cost # ph = Q / total cost of the path
 
-# %%
+# +
 """
 Elitist Ant System: it is like the classical update, but for each iteration the pheromones of the best path founded are increased by a factor.
 So this accelerate the convergance, it increase the probability that in the later iterations the other ants follows these "elitist" path.
@@ -42,7 +40,7 @@ def update_pheromone_EAS(G, paths, costs, best_path_global, best_cost_global, Q=
         G[u][v]['pheromone'] += elitist_factor * Q / best_cost_global # classic update but multiplied by a costant 
 
 
-# %%
+# +
 """
 Rank-Based Ant System: the idea is to not update all the path founded by all the ants, but only the path that are in the top K paths, so the K path with lowest cost, so lowest fitness value.
 So the best paths have more increment of pheromons compared to the lower paths in the top K, so if ad path has a better position in the top K received more pheromons respect to a path that is in a lower position in the top K.
@@ -61,7 +59,7 @@ def update_pheromone_Rank(G, paths, costs, Q=1, rank_k=3, **kwargs):
             u, v = path[i], path[i+1]
             G[u][v]['pheromone'] += weight * Q / cost
 
-# %%
+# +
 
 """
 Max-Min Ant System: only the best path update the pheromones, in this method are used a lower and upper bound for the pheromones to avoid the prominance of an edge, or "evitare stagnazione"??,
@@ -80,7 +78,7 @@ def update_pheromone_MMAS(G, paths, costs, Q=1, tau_min=0.1, tau_max=10, **kwarg
         G[u][v]['pheromone'] = max(tau_min, min(G[u][v]['pheromone'], tau_max)) # apply upper and lower bound
 
 
-# %%
+# +
 """
 Best-Worst Ant System: the idea is to increase the pheromones on the best path and decrease the worst path.
 Reduces the probability of selecting worst paths in the future iterations, increase the probability of the best paths maintaining a little bit of diversity.
@@ -107,7 +105,8 @@ def update_pheromone_BWAS(G, paths, costs, Q=1, **kwargs):
         G[u][v]['pheromone'] = max(0.01, G[u][v]['pheromone']) # avoid to get a negative quantity of pheromones
 
 
-# %%
+# -
+
 #mapping the name of the variants of ACO
 STRATEGY_MAP = {
     "Basic ACO": update_pheromone_AS,
@@ -118,7 +117,6 @@ STRATEGY_MAP = {
 }
 
 
-# %%
 #Run the ACO take the variant as a parameter
 def ant_colony_optimization(G, n_ants=10, n_iters=30, alpha=1, beta=2, evaporation=0.4, Q=1, strategy_name="Basic ACO", **kwargs):
 

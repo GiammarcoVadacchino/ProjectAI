@@ -1,10 +1,8 @@
-# %%
 import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
 
 
-# %%
 #Plot the convergence of the fitness and the population
 def plot_convergence(avg_costs, best_costs, worst_costs,title):
     iters = range(1,len(avg_costs) + 1)
@@ -18,12 +16,11 @@ def plot_convergence(avg_costs, best_costs, worst_costs,title):
     plt.ylabel("Cost")
     plt.title(title)
     plt.grid(True)
-    plt.xticks(iters)
+    plt.xticks(range(0, len(avg_costs) + 1, 10))
     plt.legend(loc="upper right")
     plt.savefig(f"../results/{title}.png")
 
 
-# %%
 def plot_best_cost_comparison(aco_best, bf_best, title="ACO vs BF Best Cost Comparison"):
 
     #Calculate X axis
@@ -58,7 +55,6 @@ def plot_best_cost_comparison(aco_best, bf_best, title="ACO vs BF Best Cost Comp
     plt.show()
 
 
-# %%
 def plot_tsp_graph(G, pos, best_path=None, title="TSP Graph"):
     
     plt.figure(figsize=(7,5))
@@ -76,7 +72,6 @@ def plot_tsp_graph(G, pos, best_path=None, title="TSP Graph"):
     plt.show()
 
 
-# %%
 def draw_tsp_path_clean(G, path, title="Shortest Path"):
     
     path_edges = []
